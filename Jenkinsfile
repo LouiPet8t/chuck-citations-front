@@ -2,7 +2,7 @@ pipeline {
   agent { label 'dind' }
 
   environment {
-    /* ←–––– adresse IP de la VM registry */
+    /* ←–––– adresse IP du registry privé */
     REGISTRY = '192.168.56.151:5000'
     IMAGE    = "${REGISTRY}/chuck_front"
   }
@@ -43,15 +43,18 @@ pipeline {
     /* 5. Déploiement sur la VM prod ------------------------------------ */
     stage('Deploy') {
       steps {
-        sshagent(['prod-ssh-key']) {
-          sh """
-            ssh vagrant@prod.home.arpa '
+        /*  prod-ssh-key  = ID Jenkins de ta clé privée  */
+        withCredentials([sshUserPrivateKey(credentialsId: 'prod-ssh-key',
+                                           keyFileVariable: 'KEY',
+                                           usernameVariable: 'USER')]) {
+          sh '''
+            ssh -i $KEY -o StrictHostKeyChecking=no $USER@prod.home.arpa "
               cd /home/vagrant/prod.front &&
-              docker pull ${IMAGE}:${BUILD_NUMBER} &&
+              docker pull '${IMAGE}:${BUILD_NUMBER}' &&
               docker-compose down &&
               docker-compose up -d
-            '
-          """
+            "
+          '''
         }
       }
     }
