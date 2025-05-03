@@ -2,7 +2,7 @@ pipeline {
   agent { label 'dind' }
 
   environment {
-    /* ←–––– adresse IP du registry privé */
+    /* Adresse IP du registry privé */
     REGISTRY = '192.168.56.151:5000'
     IMAGE    = "${REGISTRY}/chuck_front"
   }
@@ -47,14 +47,14 @@ pipeline {
         withCredentials([sshUserPrivateKey(credentialsId: 'prod-ssh-key',
                                            keyFileVariable: 'KEY',
                                            usernameVariable: 'USER')]) {
-          sh '''
-            ssh -i $KEY -o StrictHostKeyChecking=no $USER@prod.home.arpa "
+          sh """
+            ssh -i \$KEY -o StrictHostKeyChecking=no \$USER@192.168.56.152 '
               cd /home/vagrant/prod.front &&
-              docker pull '${IMAGE}:${BUILD_NUMBER}' &&
+              docker pull ${IMAGE}:${BUILD_NUMBER} &&
               docker-compose down &&
               docker-compose up -d
-            "
-          '''
+            '
+          """
         }
       }
     }
