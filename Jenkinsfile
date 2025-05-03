@@ -43,13 +43,12 @@ pipeline {
     /* 5. Déploiement sur la VM prod ------------------------------------ */
     stage('Deploy') {
       steps {
-        /*  prod-ssh-key  = ID Jenkins de ta clé privée  */
         withCredentials([sshUserPrivateKey(credentialsId: 'prod-ssh-key',
                                            keyFileVariable: 'KEY',
                                            usernameVariable: 'USER')]) {
           sh """
             ssh -i \$KEY -o StrictHostKeyChecking=no \$USER@192.168.56.152 '
-              cd /home/vagrant/prod.front &&
+              cd /home/vagrant/prod.home.arpa &&
               docker pull ${IMAGE}:${BUILD_NUMBER} &&
               docker-compose down &&
               docker-compose up -d
