@@ -2,17 +2,18 @@ pipeline {
   agent { label 'dind' }
 
   environment {
-    REGISTRY = 'registry.home.arpa:5000'
+    /* ←–––– adresse IP de la VM registry */
+    REGISTRY = '192.168.56.151:5000'
     IMAGE    = "${REGISTRY}/chuck_front"
   }
 
   stages {
-    /* --- 1. Clone --- */
+    /* 1. Checkout ------------------------------------------------------ */
     stage('Checkout') {
       steps { checkout scm }
     }
 
-    /* --- 2. Tests via le Dockerfile test/ --- */
+    /* 2. Tests ---------------------------------------------------------- */
     stage('Tests') {
       steps {
         sh '''
@@ -22,7 +23,7 @@ pipeline {
       }
     }
 
-    /* --- 3. Build de l’image finale via docker/build/ --- */
+    /* 3. Build image ---------------------------------------------------- */
     stage('Build image') {
       steps {
         sh """
@@ -32,14 +33,14 @@ pipeline {
       }
     }
 
-    /* --- 4. Push sur le registry privé --- */
+    /* 4. Push vers le registry privé ----------------------------------- */
     stage('Push') {
       steps {
         sh "docker push ${IMAGE}:${BUILD_NUMBER}"
       }
     }
 
-    /* --- 5. Déploiement en prod --- */
+    /* 5. Déploiement sur la VM prod ------------------------------------ */
     stage('Deploy') {
       steps {
         sshagent(['prod-ssh-key']) {
